@@ -52,8 +52,7 @@ class Architect(object):
         unrolled_loss.backward()
         dalpha = [v.grad for v in unrolled_model.arch_parameters()]
         vector = [v.grad.data for v in unrolled_model.parameters()]
-        implicit_grads = self._hessian_vector_product(
-            vector, input_train, target_train)
+        implicit_grads = self._hessian_vector_product(vector, input_train, target_train)
 
         for g, ig in zip(dalpha, implicit_grads):
             g.data.sub_(eta, ig.data)

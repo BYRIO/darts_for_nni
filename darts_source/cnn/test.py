@@ -10,8 +10,7 @@ import torch.nn as nn
 import genotypes
 import torch.utils
 import torchvision.datasets as dset
-import torch.backends.cudnn as cudnn
-
+import torch.backends.cudnn as cudnn 
 from torch.autograd import Variable
 from model import NetworkCIFAR as Network
 

@@ -1,13 +1,22 @@
+"""
+File: utils.py
+Author: OccamRazer
+Email: vincent.duan95@outlook.com
+Github: https://github.com/VDeamoV
+Description: Some Fundamental code placed here for reuse
+"""
+
 import os
+import shutil
+
+
 import numpy as np
 import torch
-import shutil
-import torchvision.transforms as transforms
 from torch.autograd import Variable
+import torchvision.transforms as transforms
 
 
 class AvgrageMeter(object):
-
     def __init__(self):
         self.reset()
 
@@ -102,8 +111,7 @@ def load(model, model_path):
 def drop_path(x, drop_prob):
     if drop_prob > 0.:
         keep_prob = 1.-drop_prob
-        mask = Variable(torch.cuda.FloatTensor(
-            x.size(0), 1, 1, 1).bernoulli_(keep_prob))
+        mask = Variable(torch.cuda.FloatTensor(x.size(0), 1, 1, 1).bernoulli_(keep_prob))
         x.div_(keep_prob)
         x.mul_(mask)
     return x
@@ -112,10 +120,13 @@ def drop_path(x, drop_prob):
 def create_exp_dir(path, scripts_to_save=None):
     if not os.path.exists(path):
         os.mkdir(path)
-    print('Experiment dir : {}'.format(path))
+
+    print('Experiment Log Path : {}'.format(path))
 
     if scripts_to_save is not None:
         os.mkdir(os.path.join(path, 'scripts'))
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)
+    else:
+        raise Exception("Nothing to save, please double check the params input")
