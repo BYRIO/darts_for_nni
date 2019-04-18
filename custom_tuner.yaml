@@ -1,0 +1,20 @@
+authorName: Occam
+experimentName: test_darts
+trialConcurrency: 1 # we only need 1 trial we don't run more than one 
+maxExecDuration: 1000h
+maxTrialNum: 1
+trainingServicePlatform: local
+tuner:
+    codeDir: /home/apex/DeamoV/github/darts_for_nni
+    classFileName: custom_tuner.py
+    className: custom_tuner
+    # Any parameter need to pass to your tuner class __init__ constructor
+    # can be specified in this optional classArgs field, for example 
+    classArgs:
+        model_architecture_path: "path"
+        dataset_path: "path"
+        data_type: "path"
+trial:
+    command: "base command for dars"
+    codeDir: "where contain the darts code"
+    gpuNum: 2
