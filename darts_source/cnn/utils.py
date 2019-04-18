@@ -88,7 +88,7 @@ def _data_transforms_cifar10(args):
     return train_transform, valid_transform
 
 
-def count_parameters_in_MB(model):
+def count_parameters(model):
     return np.sum(np.prod(v.size()) for name, v in model.named_parameters() if "auxiliary" not in name)/1e6
 
 
