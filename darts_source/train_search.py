@@ -25,7 +25,7 @@ from custom_visualize import plot
 
 # get params from files
 args = model_search_parser.get_cifar_parser_params()
-# tuner_params = nni.get_next_parameter()
+
 
 # get where to save log
 args.save = 'search-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
