@@ -34,8 +34,7 @@ class Cell(nn.Module):
         if reduction_prev:
             self.preprocess0 = FactorizedReduce(C_prev_prev, C, affine=False)
         else:
-            self.preprocess0 = ReLUConvBN(
-                C_prev_prev, C, 1, 1, 0, affine=False)
+            self.preprocess0 = ReLUConvBN(C_prev_prev, C, 1, 1, 0, affine=False)
         self.preprocess1 = ReLUConvBN(C_prev, C, 1, 1, 0, affine=False)
         self._steps = steps
         self._multiplier = multiplier
@@ -148,8 +147,7 @@ class Network(nn.Module):
             for i in range(self._steps):
                 end = start + n
                 W = weights[start:end].copy()
-                edges = sorted(range(i + 2), key=lambda x: -max(
-                    W[x][k] for k in range(len(W[x])) if k != PRIMITIVES.index('none')))[:2]
+                edges = sorted(range(i + 2), key=lambda x: -max(W[x][k] for k in range(len(W[x])) if k != PRIMITIVES.index('none')))[:2]
                 for j in edges:
                     k_best = None
                     for k in range(len(W[j])):

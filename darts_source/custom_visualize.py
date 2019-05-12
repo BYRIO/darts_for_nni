@@ -1,11 +1,13 @@
-import sys
 import genotypes
 from graphviz import Digraph
+from PIL import Image
+import os
+import shutil
 
 
-def plot(genotype, filename):
+def plot(genotype, filename: str, output_path: str):
     g = Digraph(
-        format='pdf',
+        format='png',
         edge_attr=dict(fontsize='20', fontname="times"),
         node_attr=dict(style='filled', shape='rect', align='center', fontsize='20',
                        height='0.5', width='0.5', penwidth='2', fontname="times"),
@@ -22,6 +24,7 @@ def plot(genotype, filename):
 
     for i in range(steps):
         for k in [2*i, 2*i + 1]:
+            # print(genotype[k + 1], k)
             op, j = genotype[k]
             if j == 0:
                 u = "c_{k-2}"
@@ -36,20 +39,13 @@ def plot(genotype, filename):
     for i in range(steps):
         g.edge(str(i), "c_{k}", fillcolor="gray")
 
-    g.render(filename, view=True)
+    g.render(filename, view=False)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("usage:\n python {} ARCH_NAME".format(sys.argv[0]))
-        sys.exit(1)
+    todo = [test_genotypes.AmoebaNet, test_genotypes.DARTS_V1,
+            test_genotypes.DARTS_V2, test_genotypes.NASNet]
 
-    genotype_name = sys.argv[1]
-    try:
-        genotype = eval('genotypes.{}'.format(genotype_name))
-    except AttributeError:
-        print("{} is not specified in genotypes.py".format(genotype_name))
-        sys.exit(1)
-
-    plot(genotype.normal, "normal")
-    plot(genotype.reduce, "reduction")
+    for item in todo:
+        plot(genotype=item.normal, filename="normals",
+             output_path="./")

@@ -15,10 +15,12 @@ tuner:
         model_architecture_path: "path"
         primitives: ['none', 'max_pool_3x3', 'avg_pool_3x3', 'skip_connect', 'sep_conv_3x3', 'sep_conv_5x5', 'dil_conv_3x3', 'dil_conv_5x5']
         dataset_path: "/home/apex/DeamoV/github/darts_for_nni/darts_source/data"
+        dataset_name: "CIFAR" # CIFAR & CUSTOM
+        custom_yaml: "custom_path" # only need when dataset_name is CUSTOM
         output_path: "/home/apex/tmp/testoutput"
         # this is to output all the log and script
-        # data_type: "path"
 trial:
     command: "python3 train_search.py"
-    codeDir: "/home/apex/DeamoV/github/darts_for_nni/darts_source/cnn"
+    codeDir: "/home/apex/DeamoV/github/darts_for_nni/darts_source"
     gpuNum: 2
+    #  TODO: add multi gpu later # 

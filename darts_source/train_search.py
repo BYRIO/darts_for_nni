@@ -20,10 +20,11 @@ import nni
 from model_search import Network, tuner_params
 from architect import Architect
 import utils
-import model_parser
+import model_search_parser
+from custom_visualize import plot
 
 # get params from files
-args = model_parser.get_cifar_parser_params()
+args = model_search_parser.get_cifar_parser_params()
 # tuner_params = nni.get_next_parameter()
 
 # get where to save log
@@ -42,64 +43,75 @@ log_file.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(log_file)
 
 
-CIFAR_CLASSES = 10
-
-
 def main():
     # Information Output
-    # check gpu
-    logging.info("%s", tuner_params["dataset_path"])
+    # Check GPU
     if not torch.cuda.is_available():
         logging.info('NO GPU DEVICE AVAILABLE')
         sys.exit(1)
+    logging.info("%s", tuner_params["dataset_path"])
     logging.info("Model Params = %s", args)
     np.random.seed(args.seed)
     torch.cuda.set_device(args.gpu)
     logging.info('gpu device = %d' % args.gpu)
 
+    # Advanced Cudnn init
     cudnn.benchmark = True
     cudnn.enabled = True
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    criterion_loss = nn.CrossEntropyLoss()
-    criterion_loss = criterion_loss.cuda()
-    model = Network(args.init_channels, CIFAR_CLASSES, args.layers, criterion_loss)
 
-    model = model.cuda()
-
-    logging.info("Model Param size = %fMB", utils.count_parameters(model))
-
-    optimizer = torch.optim.SGD(model.parameters(),
-                                args.learning_rate,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)
-
+    # Dataset & Dataloader init
+    CIFAR_CLASSES = 10
     train_transform, valid_transform = utils._data_transforms_cifar10(args)
     train_data = dset.CIFAR10(
-            root=tuner_params["dataset_path"], train=True, download=True,
-            transform=train_transform)
+        root=tuner_params["dataset_path"],
+        train=True,
+        download=True,
+        transform=train_transform)
 
     num_train = len(train_data)
     indices = list(range(num_train))
     split = int(np.floor(args.train_portion * num_train))
 
     train_dataloader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size,
+        train_data,
+        batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-        pin_memory=True, num_workers=2)
+        pin_memory=True,
+        num_workers=2)
 
     valid_dataloader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size,
-        sampler=torch.utils.data.sampler.SubsetRandomSampler(
-            indices[split:num_train]),
-        pin_memory=True, num_workers=2)
+        train_data,
+        batch_size=args.batch_size,
+        sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
+        pin_memory=True,
+        num_workers=2)
+
+    # init loss
+    criterion_loss = nn.CrossEntropyLoss()
+    criterion_loss = criterion_loss.cuda()
+
+    # init model & init architect
+    model = Network(args.init_channels, CIFAR_CLASSES, args.layers, criterion_loss)
+    model = model.cuda()
+    architect = Architect(model, args)
+    logging.info("Model Param size = %fMB", utils.count_parameters(model))
+
+    # optim & scheduler
+    optimizer = torch.optim.SGD(
+        model.parameters(),
+        args.learning_rate,
+        momentum=args.momentum,
+        weight_decay=args.weight_decay)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, float(args.epochs), eta_min=args.learning_rate_min)
+        optimizer,
+        float(args.epochs),
+        eta_min=args.learning_rate_min)
 
-    architect = Architect(model, args)
-
+    # train_loop
     for epoch in range(args.epochs):
         scheduler.step()
         lr = scheduler.get_lr()[0]
@@ -118,6 +130,11 @@ def main():
         valid_acc, valid_obj = val(valid_dataloader, model, criterion_loss)
         logging.info('train_acc %f', train_acc)
         logging.info('valid_acc %f', valid_acc)
+        
+        logging.info("start plotting epoch:" + str(epoch))
+        plot(genotype.normal, "normal" + "_epoch_" + str(epoch) + "_valid_acc_" + str(valid_acc) + "_train_acc_" + str(train_acc), os.path.join(tuner_params['output_path'], args.save))
+        plot(genotype.reduce, "reduce" + "_epoch_" + str(epoch) + "_valid_acc_" + str(valid_acc) + "_train_acc_" + str(train_acc), os.path.join(tuner_params['output_path'], args.save))
+        logging.info("end plotting")
 
         utils.save(model, os.path.join(tuner_params['output_path'], args.save, 'weights.pt'))
 
@@ -127,27 +144,36 @@ def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, 
     top1 = utils.AvgrageMeter()
     top5 = utils.AvgrageMeter()
 
-    for step, (input, target) in enumerate(train_dataloader):
+    for step, (input_data, target) in enumerate(train_dataloader):
         model.train()
-        n = input.size(0)
+        n = input_data.size(0)
 
-        input = Variable(input, requires_grad=False).cuda()
-        target = Variable(target, requires_grad=False).cuda(async=True)
+        # input = Variable(input, requires_grad=False).cuda()
+        # target = Variable(target, requires_grad=False).cuda(async=True)
+        #  TODO: I change above to the below, i thought this type of script is
+        #  not recommand in torch verision > 0.3 <05-05-19, VDeamoV> # 
+        input_data = input_data.cuda()
+        target = target.cuda(async=True)
 
         # get a random minibatch from the search queue with replacement
         input_search, target_search = next(iter(valid_dataloader))
-        input_search = Variable(input_search, requires_grad=False).cuda()
-        target_search = Variable(target_search, requires_grad=False).cuda(async=True)
 
-        architect.step(input, target, input_search, target_search,
+        # input_search = Variable(input_search, requires_grad=False).cuda()
+        # target_search = Variable(target_search, requires_grad=False).cuda(async=True)
+        #  TODO: I change above to the below, i thought this type of script is
+        #  not recommand in torch verision > 0.3 <05-05-19, VDeamoV> # 
+        input_search = input_search.cuda()
+        target_search = target_search.cuda(async=True)
+
+        architect.step(input_data, target, input_search, target_search,
                        lr, optimizer, unrolled=args.unrolled)
 
         optimizer.zero_grad()
-        logits = model(input)
+        logits = model(input_data)
         loss = criterion_loss(logits, target)
 
         loss.backward()
-        nn.utils.clip_grad_norm(model.parameters(), args.grad_clip)
+        nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         optimizer.step()
 
         prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
@@ -156,7 +182,7 @@ def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, 
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info('train %03d %e %f %f', step,
+            logging.info('train step:%03d loss:%e top1:%f top5:%f', step,
                          objs.avg, top1.avg, top5.avg)
         nni.report_intermediate_result(objs.avg)
 
@@ -184,7 +210,7 @@ def val(valid_dataloader, model, criterion_loss):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info('valid %03d %e %f %f', step,
+            logging.info('valid step:%03d loss:%e top1:%f top5:%f', step,
                          objs.avg, top1.avg, top5.avg)
 
     return top5.avg, objs.avg
