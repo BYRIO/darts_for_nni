@@ -1,3 +1,14 @@
+"""
+File: train_search.py
+Author: OccamRazorTeam
+Email: vincent.duan95@outlook.com
+Github: https://github.com/VDeamoV
+Description: This file is used to search model architect, 
+    - one folder: the scripts for future use
+    - one log: contain the training result
+    - one weight.pth: contain the train weights
+"""
+
 import os
 import sys
 import time
@@ -16,12 +27,13 @@ from torch.autograd import Variable
 import numpy as np
 import nni
 
-# noinspection PyUnresolvedReferences
-from model_search import Network, tuner_params
-from architect import Architect
 import utils
 import model_search_parser
+from model_search import Network, tuner_params
+from architect import Architect
 from custom_visualize import plot
+from data.TorchDatasetLoader.base_dataset import CustomImageDataset
+
 
 # get params from files
 args = model_search_parser.get_cifar_parser_params()
@@ -63,13 +75,18 @@ def main():
 
 
     # Dataset & Dataloader init
-    CIFAR_CLASSES = 10
-    train_transform, valid_transform = utils._data_transforms_cifar10(args)
-    train_data = dset.CIFAR10(
-        root=tuner_params["dataset_path"],
-        train=True,
-        download=True,
-        transform=train_transform)
+    DATASET_CONFIG_PATH = "/home/apex/DeamoV/github/darts_for_nni/custom_mini_imagenet.yaml"
+    train_data = CustomImageDataset(DATASET_CONFIG_PATH, mode='train', debug=False)
+    CIFAR_CLASSES = train_data.num_train_classes
+    #  TODO: need to fix CIFAR_CLASSES # 
+    
+    # CIFAR_CLASSES = 10
+    # train_transform, valid_transform = utils._data_transforms_cifar10(args)
+    # train_data = dset.CIFAR10(
+    #     root=tuner_params["dataset_path"],
+    #     train=True,
+    #     download=True,
+    #     transform=train_transform)
 
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -117,6 +134,11 @@ def main():
         lr = scheduler.get_lr()[0]
 
         genotype = model.genotype()
+        genotypes_py = open(os.path.join(tuner_params['output_path'],args.save)
+                + "/scripts/genotypes.py","a")
+        genotypes_py.write("DARTS = " + str(genotype))
+        genotypes_py.close()
+
         logging.info('epoch %d lr %e', epoch, lr)
         logging.info('genotype = %s', genotype)
 
@@ -148,20 +170,11 @@ def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, 
         model.train()
         n = input_data.size(0)
 
-        # input = Variable(input, requires_grad=False).cuda()
-        # target = Variable(target, requires_grad=False).cuda(async=True)
-        #  TODO: I change above to the below, i thought this type of script is
-        #  not recommand in torch verision > 0.3 <05-05-19, VDeamoV> # 
         input_data = input_data.cuda()
         target = target.cuda(async=True)
 
         # get a random minibatch from the search queue with replacement
         input_search, target_search = next(iter(valid_dataloader))
-
-        # input_search = Variable(input_search, requires_grad=False).cuda()
-        # target_search = Variable(target_search, requires_grad=False).cuda(async=True)
-        #  TODO: I change above to the below, i thought this type of script is
-        #  not recommand in torch verision > 0.3 <05-05-19, VDeamoV> # 
         input_search = input_search.cuda()
         target_search = target_search.cuda(async=True)
 
@@ -171,7 +184,6 @@ def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, 
         optimizer.zero_grad()
         logits = model(input_data)
         loss = criterion_loss(logits, target)
-
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         optimizer.step()
@@ -182,8 +194,9 @@ def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, 
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info('train step:%03d loss:%e top1:%f top5:%f', step,
-                         objs.avg, top1.avg, top5.avg)
+            logging.info('train step:%03d loss:%e top1:%f top5:%f', 
+                         step, objs.avg, top1.avg, top5.avg)
+
         nni.report_intermediate_result(objs.avg)
 
     return top5.avg, objs.avg
@@ -194,7 +207,6 @@ def val(valid_dataloader, model, criterion_loss):
     top1 = utils.AvgrageMeter()
     top5 = utils.AvgrageMeter()
     model.eval()
-
     for step, (input, target) in enumerate(valid_dataloader):
         with torch.no_grad():
             input = Variable(input).cuda()
