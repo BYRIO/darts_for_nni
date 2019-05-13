@@ -1,3 +1,10 @@
+"""
+File: custom_visualize.py
+Author: Occam_Razor
+Email: sheldonzhang.bupt@gmail.com
+Github: https://github.com/ltg001
+Description> show network structure in png automatically
+"""
 import genotypes
 from graphviz import Digraph
 from PIL import Image
@@ -40,6 +47,7 @@ def plot(genotype, filename: str, output_path: str):
         g.edge(str(i), "c_{k}", fillcolor="gray")
 
     g.render(filename, view=False)
+    shutil.move(filename, os.path.join(output_path, filename))
 
 
 if __name__ == '__main__':

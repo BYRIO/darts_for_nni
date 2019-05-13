@@ -27,7 +27,6 @@ class Cell(nn.Module):
             concat = genotype.normal_concat
         self._compile(C, op_names, indices, concat, reduction)
 
-
     def _compile(self, C, op_names, indices, concat, reduction):
         assert len(op_names) == len(indices)
         self._steps = len(op_names) // 2
@@ -40,7 +39,6 @@ class Cell(nn.Module):
             op = OPS[name](C, stride, True)
             self._ops += [op]
         self._indices = indices
-
 
     def forward(self, s0, s1, drop_prob):
         s0 = self.preprocess0(s0)

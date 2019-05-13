@@ -75,18 +75,20 @@ def main():
 
 
     # Dataset & Dataloader init
-    DATASET_CONFIG_PATH = "/home/apex/DeamoV/github/darts_for_nni/custom_mini_imagenet.yaml"
-    train_data = CustomImageDataset(DATASET_CONFIG_PATH, mode='train', debug=False)
-    CIFAR_CLASSES = train_data.num_train_classes
-    #  TODO: need to fix CIFAR_CLASSES # 
+    if tuner_params['dataset_name'] == CUSTOM:
+        train_data = CustomImageDataset(tuner_params['custom_yaml'], mode='train', debug=False)
+        NUM_CLASSES = train_data.num_train_classes
     
-    # CIFAR_CLASSES = 10
-    # train_transform, valid_transform = utils._data_transforms_cifar10(args)
-    # train_data = dset.CIFAR10(
-    #     root=tuner_params["dataset_path"],
-    #     train=True,
-    #     download=True,
-    #     transform=train_transform)
+    elif tuner_params['dataset_name'] == CIFAR:
+        NUM_CLASSES = 10
+        train_transform, valid_transform = utils._data_transforms_cifar10(args)
+        train_data = dset.CIFAR10(
+            root=tuner_params["dataset_path"],
+            train=True,
+            download=True,
+            transform=train_transform)
+    else:
+        raise Exception("We do not support this %s yet" % tuner_params['dataset_name'])
 
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -111,7 +113,7 @@ def main():
     criterion_loss = criterion_loss.cuda()
 
     # init model & init architect
-    model = Network(args.init_channels, CIFAR_CLASSES, args.layers, criterion_loss)
+    model = Network(args.init_channels, NUM_CLASSES, args.layers, criterion_loss)
     model = model.cuda()
     architect = Architect(model, args)
     logging.info("Model Param size = %fMB", utils.count_parameters(model))
@@ -146,7 +148,8 @@ def main():
         print(F.softmax(model.alphas_reduce, dim=-1))
 
         # training
-        train_acc, train_obj = train(train_dataloader, valid_dataloader, model, architect, criterion_loss, optimizer, lr)
+        train_acc, train_obj = train(train_dataloader, valid_dataloader, model,
+            architect, criterion_loss, optimizer, lr)
 
         # validation
         valid_acc, valid_obj = val(valid_dataloader, model, criterion_loss)
@@ -154,8 +157,12 @@ def main():
         logging.info('valid_acc %f', valid_acc)
         
         logging.info("start plotting epoch:" + str(epoch))
-        plot(genotype.normal, "normal" + "_epoch_" + str(epoch) + "_valid_acc_" + str(valid_acc) + "_train_acc_" + str(train_acc), os.path.join(tuner_params['output_path'], args.save))
-        plot(genotype.reduce, "reduce" + "_epoch_" + str(epoch) + "_valid_acc_" + str(valid_acc) + "_train_acc_" + str(train_acc), os.path.join(tuner_params['output_path'], args.save))
+        plot(genotype.normal, "normal_epoch_" + str(epoch) + "_valid_acc_"
+                + str(valid_acc) + "_train_acc_" + str(train_acc),
+             os.path.join(tuner_params['output_path'], args.save))
+        plot(genotype.reduce, "reduce_epoch_" + str(epoch) + "_valid_acc_"
+                + str(valid_acc) + "_train_acc_" + str(train_acc),
+             os.path.join(tuner_params['output_path'], args.save))
         logging.info("end plotting")
 
         utils.save(model, os.path.join(tuner_params['output_path'], args.save, 'weights.pt'))
