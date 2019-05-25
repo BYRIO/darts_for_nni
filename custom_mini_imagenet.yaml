@@ -1,0 +1,18 @@
+# yaml_file
+info:
+    name: 'mini-imagenet'
+    data_type: ['JPEG','jpg'] # image or other types will support later
+
+directory:
+    root_dir: '/home/apex/DeamoV/github/mini-imagenet-tools/processed_images_80_80'
+
+preprocess:
+    transforms:
+        transform_list: ['RandomSizedCrop', 'ToTensor']
+        params:
+          image_size: 32
+    transforms_target:
+        transform_list: []
+        params:
+
+
