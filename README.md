@@ -3,35 +3,45 @@ Darts for NNI
 <!-- vim-markdown-toc GitLab -->
 
 * [Intro](#intro)
-* [File Structure](#file-structure)
-  * [Source Code Structure](#source-code-structure)
-  * [OutputFile Structure](#outputfile-structure)
 * [Using Manual](#using-manual)
-  * [How to Train Model](#how-to-train-model)
+  * [How to Train Model Search](#how-to-train-model-search)
     * [Using CIFAR-10](#using-cifar-10)
     * [Using Custom Dataset](#using-custom-dataset)
-* [DataStructure Manual](#datastructure-manual)
+  * [How to Use Searched Model](#how-to-use-searched-model)
+    * [Using CIFAR-10](#using-cifar-10-1)
+    * [How to test on Custom Dataset](#how-to-test-on-custom-dataset)
+  * [How to Custom Ops](#how-to-custom-ops)
+* [File Structure Manual](#file-structure-manual)
     * [SourceCode Structure](#sourcecode-structure)
-    * [OutputFile Structure](#outputfile-structure-1)
+    * [OutputFile Structure](#outputfile-structure)
 * [Reference](#reference)
 * [FutureWork](#futurework)
 
 <!-- vim-markdown-toc -->
 Intro
 -----
+1. 算法的优势
+2. 论文的地址
+3. 大致效果
+4. 用户最后会得到什么
 
-File Structure
---------------
-### Source Code Structure
-### OutputFile Structure
 
 Using Manual
 ------------
-### How to Train Model
+### How to Train Model Search
 #### Using CIFAR-10
 #### Using Custom Dataset
 
-DataStructure Manual
+### How to Use Searched Model
+#### Using CIFAR-10
+#### How to test on Custom Dataset
+
+### How to Custom Ops
+```bash
+# file ssss:
+
+```
+File Structure Manual
 --------------------
 #### SourceCode Structure
 ```bash
