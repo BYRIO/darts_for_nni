@@ -29,7 +29,7 @@ import nni
 
 import utils
 import model_search_parser
-from model_search import Network, tuner_params
+from model_search import Network, TUNER_PARAMS
 from architect import Architect
 from custom_visualize import plot
 from data.TorchDatasetLoader.base_dataset import CustomImageDataset
@@ -41,7 +41,9 @@ args = model_search_parser.get_cifar_parser_params()
 
 # get where to save log
 args.save = 'search-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
-utils.create_exp_dir(os.path.join(tuner_params['output_path'], args.save), scripts_to_save=glob.glob('*.py'))
+utils.create_exp_dir(os.path.join(TUNER_PARAMS['output_path'], args.save),
+        scripts_to_save=["genotypes.py","train_imagenet.py","utils.py",
+            "test_imagenet.py","model.py","operations.py"])
 
 
 # create log
@@ -50,7 +52,7 @@ log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                     format=log_format, datefmt='%m/%d %I:%M:%S %p')
 # create where to save log
-log_file = logging.FileHandler(os.path.join(tuner_params['output_path'],args.save,'log.txt'))
+log_file = logging.FileHandler(os.path.join(TUNER_PARAMS['output_path'],args.save,'log.txt'))
 log_file.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(log_file)
 
@@ -61,7 +63,7 @@ def main():
     if not torch.cuda.is_available():
         logging.info('NO GPU DEVICE AVAILABLE')
         sys.exit(1)
-    logging.info("%s", tuner_params["dataset_path"])
+    logging.info("%s", TUNER_PARAMS["dataset_path"])
     logging.info("Model Params = %s", args)
     np.random.seed(args.seed)
     torch.cuda.set_device(args.gpu)
@@ -75,20 +77,20 @@ def main():
 
 
     # Dataset & Dataloader init
-    if tuner_params['dataset_name'] == "CUSTOM":
-        train_data = CustomImageDataset(tuner_params['custom_yaml'], mode='train', debug=False)
+    if TUNER_PARAMS['dataset_name'] == "CUSTOM":
+        train_data = CustomImageDataset(TUNER_PARAMS['custom_yaml'], mode='train', debug=False)
         NUM_CLASSES = train_data.num_train_classes
 
-    elif tuner_params['dataset_name'] == "CIFAR":
+    elif TUNER_PARAMS['dataset_name'] == "CIFAR":
         NUM_CLASSES = 10
         train_transform, valid_transform = utils._data_transforms_cifar10(args)
         train_data = dset.CIFAR10(
-            root=tuner_params["dataset_path"],
+            root=TUNER_PARAMS["dataset_path"],
             train=True,
             download=True,
             transform=train_transform)
     else:
-        raise Exception("We do not support this %s yet" % tuner_params['dataset_name'])
+        raise Exception("We do not support this %s yet" % TUNER_PARAMS['dataset_name'])
 
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -136,9 +138,9 @@ def main():
         lr = scheduler.get_lr()[0]
 
         genotype = model.genotype()
-        genotypes_py = open(os.path.join(tuner_params['output_path'],args.save)
+        genotypes_py = open(os.path.join(TUNER_PARAMS['output_path'],args.save)
                 + "/scripts/genotypes.py","a")
-        genotypes_py.write("DARTS = " + str(genotype))
+        genotypes_py.write("\nDARTS = " + str(genotype))
         genotypes_py.close()
 
         logging.info('epoch %d lr %e', epoch, lr)
@@ -159,13 +161,13 @@ def main():
         logging.info("start plotting epoch:" + str(epoch))
         plot(genotype.normal, "normal_epoch_" + str(epoch) + "_valid_acc_"
                 + str(valid_acc) + "_train_acc_" + str(train_acc),
-             os.path.join(tuner_params['output_path'], args.save))
+             os.path.join(TUNER_PARAMS['output_path'], args.save))
         plot(genotype.reduce, "reduce_epoch_" + str(epoch) + "_valid_acc_"
                 + str(valid_acc) + "_train_acc_" + str(train_acc),
-             os.path.join(tuner_params['output_path'], args.save))
+             os.path.join(TUNER_PARAMS['output_path'], args.save))
         logging.info("end plotting")
 
-        utils.save(model, os.path.join(tuner_params['output_path'], args.save, 'weights.pt'))
+        utils.save(model, os.path.join(TUNER_PARAMS['output_path'], args.save, 'weights.pt'))
 
 
 def train(train_dataloader, valid_dataloader, model, architect, criterion_loss, optimizer, lr):

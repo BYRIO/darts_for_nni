@@ -1,15 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from operations import *
+from operations import ReLUConvBN, OPS, FactorizedReduce
 from torch.autograd import Variable
 # from genotypes import PRIMITIVES
 import nni
-
 from genotypes import Genotype
 
-tuner_params = nni.get_next_parameter()
-PRIMITIVES = tuner_params["primitives"]
+TUNER_PARAMS = nni.get_next_parameter()
+PRIMITIVES = TUNER_PARAMS["primitives"]
 
 class MixedOp(nn.Module):
 
@@ -41,7 +40,7 @@ class Cell(nn.Module):
         self._multiplier = multiplier
 
         self._ops = nn.ModuleList()
-        self._bns = nn.ModuleList()
+        # self._bns = nn.ModuleList()
         for i in range(self._steps):
             for j in range(2+i):
                 stride = 2 if reduction and j < 2 else 1
@@ -148,7 +147,9 @@ class Network(nn.Module):
             for i in range(self._steps):
                 end = start + n
                 W = weights[start:end].copy()
-                edges = sorted(range(i + 2), key=lambda x: -max(W[x][k] for k in range(len(W[x])) if k != PRIMITIVES.index('none')))[:2]
+                edges = sorted(range(i + 2),\
+                            key=lambda x: -max(W[x][k] for k in range(len(W[x]))\
+                                               if k != PRIMITIVES.index('none')))[:2]
                 for j in edges:
                     k_best = None
                     for k in range(len(W[j])):

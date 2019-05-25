@@ -10,7 +10,7 @@ preprocess:
     transforms:
         transform_list: ['RandomSizedCrop', 'ToTensor']
         params:
-          image_size: 32
+          image_size: 8
     transforms_target:
         transform_list: []
         params:
