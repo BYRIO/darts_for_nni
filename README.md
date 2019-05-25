@@ -50,3 +50,5 @@ Reference
 FutureWork
 ----------
 - [ ] Add support for multi-GPUs
+- [ ] Redefine the output axis' name
+- [ ] Custom model_search's params

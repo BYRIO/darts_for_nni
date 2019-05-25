@@ -3,7 +3,8 @@ File: parser.py
 Author: OccamRazerTeam
 Email: vincent.duan95@outlook.com
 Github: https://github.com/VDeamoV
-Description: This file is used to return the config typed in by user
+Description:
+    This file is to config model_search's params
 """
 
 import argparse

@@ -47,7 +47,8 @@ def plot(genotype, filename: str, output_path: str):
         g.edge(str(i), "c_{k}", fillcolor="gray")
 
     g.render(filename, view=False)
-    shutil.move(filename, os.path.join(output_path, filename))
+    shutil.move(filename + ".png", output_path)
+    os.remove(filename)
 
 
 if __name__ == '__main__':

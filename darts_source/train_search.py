@@ -75,11 +75,11 @@ def main():
 
 
     # Dataset & Dataloader init
-    if tuner_params['dataset_name'] == CUSTOM:
+    if tuner_params['dataset_name'] == "CUSTOM":
         train_data = CustomImageDataset(tuner_params['custom_yaml'], mode='train', debug=False)
         NUM_CLASSES = train_data.num_train_classes
 
-    elif tuner_params['dataset_name'] == CIFAR:
+    elif tuner_params['dataset_name'] == "CIFAR":
         NUM_CLASSES = 10
         train_transform, valid_transform = utils._data_transforms_cifar10(args)
         train_data = dset.CIFAR10(

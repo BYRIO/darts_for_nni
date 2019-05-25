@@ -5,6 +5,7 @@ from operations import *
 from torch.autograd import Variable
 # from genotypes import PRIMITIVES
 import nni
+
 from genotypes import Genotype
 
 tuner_params = nni.get_next_parameter()
