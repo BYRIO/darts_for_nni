@@ -26,6 +26,10 @@ Intro
 3. 大致效果
 4. 用户最后会得到什么
 
+1. the Advantage of DARTS  
+  DARTS (Differentiable ARchiTecture Search) is an extremely efficient model searching algorithm for convolutional neural networks and recurent neural networks (not implemented).  
+  Instead of searching over a discrete set of candidate architectures,  the algorithm relax the search space to be continuous, so that the architecture can be optimized with respect to its validation set performance by gradient descent. This feature brings a great advantage of tremendous searching efficiency and training speed, which outperforms other related algorithms by three magnitudes.
+2. Paper: [DARTS: DIFFERENTIABLE ARCHITECTURE SEARCH](https://arxiv.org/pdf/1806.09055.pdf)
 
 Using Manual
 ------------
