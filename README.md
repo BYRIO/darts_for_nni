@@ -21,11 +21,15 @@ Darts for NNI
 <!-- vim-markdown-toc -->
 Intro
 -----
-1. 算法的优势
-2. 论文的地址
-3. 大致效果
-4. 用户最后会得到什么
+DARTS is one of the Neural Architecture Search (NAS) alogrithoms. It turn the discrete Architecture Search problem to an continues problem,
+which significantly reduce the Architecture Search time cosume. Different from other approach, it use gradient descent to explore the variant
+of the Architecture, so it won't have lots of trail. More importantly it is pretty fast (1 GPU Day for searching Architecture on CIFAR 10), which
+make it avaliable for most of situations.
 
+In this tuner, we reproduce the DARTS for CNNs to let user to TRAIN on CIFAR, or on their own datasets. After training, you will have some scripts to
+tell what is the result Architecture and the scipts to use this final searched Architecture.
+
+*ps. Final file construct will be found in the following part of this description, and paper link will be found in the reference part.*
 
 Using Manual
 ------------
@@ -135,8 +139,8 @@ File Structure Manual
 
 Reference
 ---------
-- darts_official_code and papers
-- nni_official_code
+- [DARTS paper](https://arxiv.org/pdf/1806.09055)
+- [DARTS_official_code](https://github.com/quark0/darts)
 
 FutureWork
 ----------
