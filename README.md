@@ -2,18 +2,14 @@ Darts for NNI
 =============
 <!-- vim-markdown-toc GitLab -->
 
-* [Intro](#intro)
+* [Advantages of DARTS](#advantages-of-darts)
 * [Using Manual](#using-manual)
 * [Config Tuner YAML](#config-tuner-yaml)
   * [Config Model Search Dataset](#config-model-search-dataset)
   * [Config Primitive for Ops](#config-primitive-for-ops)
     * [Example YAML](#example-yaml)
-  * [How to Use Searched Model](#how-to-use-searched-model)
-    * [Using ImageNet](#using-imagenet)
-    * [How to test on Custom Dataset](#how-to-test-on-custom-dataset)
   * [How to Custom Ops](#how-to-custom-ops)
 * [File Structure Manual](#file-structure-manual)
-    * [SourceCode Structure](#sourcecode-structure)
     * [OutputFile Structure](#outputfile-structure)
 * [Reference](#reference)
 * [FutureWork](#futurework)
@@ -79,10 +75,6 @@ trial:
     #  TODO: add multi gpu later # 
 ```
 
-### How to Use Searched Model
-#### Using ImageNet
-#### How to test on Custom Dataset
-
 ### How to Custom Ops
 ```bash
 # file: $DARTS_FOR_NNI_ROOT_PATH/darts_source/operations.py
@@ -124,17 +116,24 @@ OPS = {
 ```
 File Structure Manual
 --------------------
-#### SourceCode Structure
-```bash
-
-```
 #### OutputFile Structure
 1. the final structure of model searching (cell)
 2. the image of final structure (.png)
 3. model params
 
 ```bash
-
+.
+├── log.txt # trained log
+├── normal_epoch_0_valid_acc_0.0_train_acc_39.484375.png # normal graph pic
+├── reduce_epoch_0_valid_acc_0.0_train_acc_39.484375.png # reduce graph pic
+├── scripts
+│   ├── genotypes.py
+│   ├── model.py
+│   ├── operations.py
+│   ├── test_imagenet.py                                 # test script on imagenet
+│   ├── train_imagenet.py                                # train script on imagenet
+│   └── utils.py
+└── weights.pt                                           # trained weights
 ```
 
 Reference
