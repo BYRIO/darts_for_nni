@@ -12,7 +12,6 @@ tuner:
     # Any parameter need to pass to your tuner class __init__ constructor
     # can be specified in this optional classArgs field, for example 
     classArgs:
-        model_architecture_path: "path"
         primitives: ['none', 'max_pool_3x3', 'avg_pool_3x3', 'skip_connect', 'sep_conv_3x3', 'sep_conv_5x5', 'dil_conv_3x3', 'dil_conv_5x5']
         dataset_path: "/home/apex/DeamoV/github/darts_for_nni/darts_source/data"
         dataset_name: "CUSTOM" # CIFAR & CUSTOM
